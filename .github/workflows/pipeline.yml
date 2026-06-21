@@ -1,96 +1,74 @@
 name: Tourism MLOps Pipeline
 
-# Triggers automatically on every push to main
 on:
   push:
     branches:
       - main
 
-# ─── Shared environment ───────────────────────────────────────────────────────
-# GitHub Actions secrets required (Settings → Secrets and variables → Actions):
+# GitHub Actions secrets required:
 #   HF_TOKEN    — your Hugging Face write token
 #   HF_USERNAME — your Hugging Face username
 
 jobs:
 
-  # ── STAGE 1: Upload raw dataset to HF Dataset Hub ─────────────────────────
   register-dataset:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
+          python-version: "3.9"
       - name: Install Dependencies
         run: pip install huggingface-hub pandas
-
       - name: Upload Dataset to Hugging Face Hub
         env:
           HF_TOKEN:    ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
         run: python scripts/data_registration.py
 
-  # ── STAGE 2: Clean, split, and re-upload train/test ───────────────────────
   data-prep:
     needs: register-dataset
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
+          python-version: "3.9"
       - name: Install Dependencies
         run: pip install -r requirements.txt
-
       - name: Run Data Preparation
         env:
           HF_TOKEN:    ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
         run: python scripts/data_preparation.py
 
-  # ── STAGE 3: Train models, log with MLflow, register best to HF ──────────
   model-training:
     needs: data-prep
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
+          python-version: "3.9"
       - name: Install Dependencies
         run: pip install -r requirements.txt
-
       - name: Train and Register Best Model
         env:
           HF_TOKEN:             ${{ secrets.HF_TOKEN }}
           HF_USERNAME:          ${{ secrets.HF_USERNAME }}
-          MLFLOW_TRACKING_URI:  sqlite:///mlflow.db
+          MLFLOW_TRACKING_URI:  ./mlruns
         run: python model_building/model_training.py
 
-  # ── STAGE 4: Push deployment files to HF Streamlit Space ─────────────────
   deploy-hosting:
     needs: [model-training]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
+          python-version: "3.9"
       - name: Install Dependencies
         run: pip install huggingface-hub
-
       - name: Push Deployment Files to Hugging Face Space
         env:
           HF_TOKEN:    ${{ secrets.HF_TOKEN }}

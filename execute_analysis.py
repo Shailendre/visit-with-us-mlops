@@ -202,7 +202,7 @@ head_train_text = str(X_train.head(3))
 print("=== Step 6: Preprocessor ===")
 
 preprocessor = ColumnTransformer([
-    ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CAT_FEATURES),
+    ("cat", OneHotEncoder(handle_unknown="ignore", sparse=False), CAT_FEATURES),
     ("ord", OrdinalEncoder(categories=ORD_CATS),                         ORD_FEATURES),
     ("num", "passthrough",                                                NUM_FEATURES),
 ], remainder="drop")
@@ -217,7 +217,7 @@ prep_out = (
 # ═════════════════════════════════════════════════════════════════════════════
 print("=== Step 7: MLflow + model training (this may take a few minutes) ===")
 
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_tracking_uri("./mlruns")
 mlflow.set_experiment("Tourism_Package_Prediction")
 mlflow_start_out = (
     f"MLflow tracking at: sqlite:///{os.path.abspath('mlflow.db')}\n"
@@ -265,11 +265,7 @@ for name, est, params in EXPERIMENTS:
         m    = _eval(best, X_test, y_test)
         mlflow.log_params({k.replace("classifier__",""):v for k,v in gs.best_params_.items()})
         mlflow.log_metrics(m)
-        mlflow.sklearn.log_model(best, "model",
-                                  skops_trusted_types=[
-                                      "xgboost.core.Booster",
-                                      "xgboost.sklearn.XGBClassifier",
-                                  ])
+        mlflow.sklearn.log_model(best, "model")
         results[name]     = m
         models_dict[name] = best
         bp = {k.replace("classifier__",""):v for k,v in gs.best_params_.items()}

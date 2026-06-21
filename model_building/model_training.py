@@ -4,7 +4,7 @@ Model Training Script with MLflow Experiment Tracking (MLflow 3.x / Python 3.13+
 Loads train/test from HF, tunes multiple classifiers, logs all runs to MLflow,
 and registers the best model to the Hugging Face Model Hub.
 Required env vars: HF_TOKEN, HF_USERNAME
-Optional env vars: MLFLOW_TRACKING_URI (default: sqlite:///mlflow.db)
+Optional env vars: MLFLOW_TRACKING_URI (default: ./mlruns)
 """
 import os, tempfile
 import pandas as pd
@@ -27,7 +27,7 @@ HF_TOKEN     = os.environ["HF_TOKEN"]
 HF_USERNAME  = os.environ.get("HF_USERNAME", "ssingh94")
 DATASET_REPO = f"{HF_USERNAME}/tourism-dataset"
 MODEL_REPO   = f"{HF_USERNAME}/tourism-model"
-MLFLOW_URI   = os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
+MLFLOW_URI   = os.environ.get("MLFLOW_TRACKING_URI", "./mlruns")
 EXPERIMENT   = "Tourism_Package_Prediction"
 RANDOM_STATE = 42
 TARGET       = "ProdTaken"
@@ -80,7 +80,7 @@ def load_data():
 
 def build_preprocessor():
     return ColumnTransformer([
-        ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CAT_FEATURES),
+        ("cat", OneHotEncoder(handle_unknown="ignore", sparse=False), CAT_FEATURES),
         ("ord", OrdinalEncoder(categories=ORD_CATS),                         ORD_FEATURES),
         ("num", "passthrough",                                                NUM_FEATURES),
     ], remainder="drop")
@@ -112,11 +112,7 @@ def run_experiment(name, estimator, param_grid, preprocessor,
         mlflow.log_params({k.replace("classifier__", ""): v
                            for k, v in gs.best_params_.items()})
         mlflow.log_metrics(metrics)
-        mlflow.sklearn.log_model(best, name="model",
-                                  skops_trusted_types=[
-                                      "xgboost.core.Booster",
-                                      "xgboost.sklearn.XGBClassifier",
-                                  ])
+        mlflow.sklearn.log_model(best, "model")
 
         print(f"{name:26s} | F1={metrics['f1_score']:.4f} | "
               f"ROC-AUC={metrics['roc_auc']:.4f} | Recall={metrics['recall']:.4f}")
