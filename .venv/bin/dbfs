@@ -1,0 +1,6 @@
+#!/Users/ssingh/Documents/MSAI/visit-with-us-mlops/.venv/bin/python3.9
+import sys
+from databricks_cli.dbfs.cli import dbfs_group
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(dbfs_group())
