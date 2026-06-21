@@ -1,5 +1,6 @@
-# MLflow local tracking store (recreated by CI/CD)
+# MLflow — both recreated fresh on each CI run, never commit
 mlruns/
+mlflow.db
 
 # Generated splits (recreated by pipeline)
 data/train.csv
