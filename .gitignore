@@ -1,0 +1,20 @@
+# MLflow local tracking store (recreated by CI/CD)
+mlruns/
+
+# Generated splits (recreated by pipeline)
+data/train.csv
+data/test.csv
+
+# Intermediate project folder (populated during notebook run)
+tourism_project/
+
+# Python / macOS
+__pycache__/
+*.py[cod]
+*.egg-info/
+.DS_Store
+.idea/
+*.iml
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
